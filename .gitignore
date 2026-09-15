@@ -5,3 +5,7 @@ node_modules/
 
 data/
 .tools/
+
+dist/
+.netlify/
+.wrangler/

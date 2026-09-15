@@ -7,7 +7,8 @@
     "start": "node server.mjs",
     "test": "node --test tests.mjs uploads.test.mjs security.test.mjs bundle.test.mjs",
     "test:core": "node --test tests.mjs security.test.mjs bundle.test.mjs",
-    "test:load": "node load-check.mjs"
+    "test:load": "node load-check.mjs",
+    "test:hosting": "node --test hosting.test.mjs security.test.mjs"
   },
   "engines": {
     "node": ">=22"

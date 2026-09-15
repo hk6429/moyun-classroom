@@ -21,7 +21,7 @@ export function createApp(options={}){if(process.env.PUBLIC_ORIGIN&&process.env.
  const url=new URL(req.url,'http://localhost');
  res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');res.setHeader('X-Frame-Options','DENY');
  res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; frame-src https://www.youtube-nocookie.com; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'");
- if(req.method==='POST'&&req.headers.origin&&req.headers.origin!==(process.env.PUBLIC_ORIGIN||'http://'+req.headers.host))return json(res,403,{error:'請從本站送出請求'});
+ const allowedOrigins=[process.env.PUBLIC_ORIGIN||'http://'+req.headers.host,...(process.env.ALLOWED_ORIGINS||'').split(',').map(x=>x.trim()).filter(Boolean)];if(req.method==='POST'&&req.headers.origin&&!allowedOrigins.includes(req.headers.origin))return json(res,403,{error:'請從本站送出請求'});
  if(url.pathname==='/api/health')return json(res,200,{ok:true,persistent:true,converter:await converterHealth(),publicOrigin:process.env.PUBLIC_ORIGIN||null});
  if(url.pathname==='/api/session')return json(res,200,{teacher:!!auth.session(req)?.teacher});
  if(url.pathname.startsWith('/assets/')&&!owns(req,url.pathname))return json(res,403,{error:'沒有圖片存取權限'});
