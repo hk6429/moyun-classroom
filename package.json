@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test tests.mjs uploads.test.mjs"
+    "test": "node --test tests.mjs uploads.test.mjs security.test.mjs bundle.test.mjs",
+    "test:core": "node --test tests.mjs security.test.mjs bundle.test.mjs",
+    "test:load": "node load-check.mjs"
   },
   "engines": {
     "node": ">=22"
