@@ -1,0 +1,30 @@
+import http from 'node:http';
+import {readFile} from 'node:fs/promises';
+import {randomBytes,randomInt} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('./public/',import.meta.url));
+export function createApp(){
+ const rooms=new Map();
+ const token=()=>randomBytes(24).toString('hex');
+ const json=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
+ const cleanDeck=d=>{if(!Array.isArray(d)||!d.length||d.length>30)throw Error('簡報需包含 1 至 30 頁');return d.map(s=>{if(!['content','quiz','poll','short','board','fill','resource'].includes(s.type))throw Error('不支援的活動');if(typeof s.title!=='string'||!s.title.trim()||s.title.length>200)throw Error('請填寫標題（200 字以內）');const o=Array.isArray(s.options)?s.options.map(x=>String(x).slice(0,200)):[];if(['quiz','poll'].includes(s.type)&&(o.length<2||o.length>6||o.some(x=>!x.trim())))throw Error('選項需有 2 至 6 個且不可空白');if(s.type==='quiz'&&(!Number.isInteger(s.correct)||s.correct<0||s.correct>=o.length))throw Error('請指定正確答案');if(s.type==='fill'&&(!String(s.solution||'').trim()||String(s.solution).length>200))throw Error('請填寫填空題答案（200 字以內）');if(s.type==='resource'){let u;try{u=new URL(s.url);}catch{throw Error('請填寫完整的資源網址');}if(u.protocol!=='https:')throw Error('資源網址必須使用 https');}return {solution:s.type==='fill'?String(s.solution).trim():undefined,url:s.type==='resource'?String(s.url):undefined,type:s.type,title:s.title.trim(),body:String(s.body||'').slice(0,3000),options:o,correct:s.type==='quiz'?s.correct:null};});};
+ const prune=setInterval(()=>{for(const [c,r]of rooms)if(Date.now()-r.updated>6*3600000)rooms.delete(c);},60000);prune.unref();
+ const server=http.createServer(async(req,res)=>{try{
+ const url=new URL(req.url,'http://localhost');
+ if(!url.pathname.startsWith('/api/')){if(req.method!=='GET'){res.writeHead(405);return res.end();}const path=url.pathname==='/'?'index.html':url.pathname.slice(1);if(!['index.html','app.js','style.css','landscape.svg'].includes(path)){res.writeHead(404);return res.end('找不到頁面');}const file=await readFile(root+path);res.writeHead(200,{'Content-Type':{'html':'text/html; charset=utf-8','js':'text/javascript; charset=utf-8','css':'text/css; charset=utf-8','svg':'image/svg+xml'}[path.split('.').pop()],'X-Content-Type-Options':'nosniff'});return res.end(file);}
+ let b={};if(req.method==='POST'){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>100000)return json(res,413,{error:'資料過大'});}try{b=JSON.parse(raw);}catch{return json(res,400,{error:'資料格式錯誤'});}}
+ const p=url.pathname;
+ if(p==='/api/create'&&req.method==='POST'){if(rooms.size>=100)return json(res,429,{error:'教室已滿，請稍後再試'});let code;do{code=String(randomInt(100000,1000000));}while(rooms.has(code));const host=token(),deck=cleanDeck(b.deck);rooms.set(code,{host,deck,index:0,reveal:false,ended:false,people:new Map(),answers:{},updated:Date.now()});return json(res,200,{code,token:host});}
+ const code=url.searchParams.get('code')||b.code,r=rooms.get(code);if(!r)return json(res,404,{error:'找不到教室，請確認六位數代碼'});
+ const t=req.headers.authorization?.replace(/^Bearer /,''),host=t===r.host;
+ if(p==='/api/join'&&req.method==='POST'){if(r.ended)return json(res,409,{error:'這堂課已結束'});if(r.people.size>=100)return json(res,429,{error:'教室已滿'});const name=String(b.name||'').trim().slice(0,24);if(!name)return json(res,400,{error:'請輸入暱稱'});const id=token();r.people.set(id,name);r.updated=Date.now();return json(res,200,{token:id});}
+ if(!host&&!r.people.has(t))return json(res,401,{error:'請重新加入教室'});
+ if(p==='/api/state'&&req.method==='GET'){const slide={...r.deck[r.index]};if(!host&&!r.reveal){delete slide.correct;delete slide.solution;}const answers=r.answers[r.index]||{};return json(res,200,{index:r.index,total:r.deck.length,slide,reveal:r.reveal,ended:r.ended,people:r.people.size,submitted:Object.keys(answers).length,mine:answers[t]??null,...(r.reveal&&slide.type==='board'?{board:Object.entries(answers).map(([id,answer])=>({name:r.people.get(id),answer}))}:{}),...host?{answers:Object.entries(answers).map(([id,answer])=>({name:r.people.get(id),answer})),deck:r.deck}:{} });}
+ if(p==='/api/control'&&req.method==='POST'){if(!host)return json(res,403,{error:'只有教師可以操作'});if(r.ended)return json(res,409,{error:'課程已結束'});if(Number.isInteger(b.index)){r.index=Math.max(0,Math.min(r.deck.length-1,b.index));r.reveal=false;}if(typeof b.reveal==='boolean')r.reveal=b.reveal;if(b.end===true)r.ended=true;r.updated=Date.now();return json(res,200,{ok:true});}
+ if(p==='/api/answer'&&req.method==='POST'){if(host)return json(res,403,{error:'請使用學生身分作答'});if(r.ended||r.reveal||b.index!==r.index)return json(res,409,{error:'題目已切換或作答已截止'});const s=r.deck[r.index];if(['content','resource'].includes(s.type))return json(res,400,{error:'此頁無需作答'});let answer=b.answer;if(['short','board','fill'].includes(s.type)){if(typeof answer!=='string'||!answer.trim()||answer.length>1000)return json(res,400,{error:'請輸入 1 至 1000 字'});answer=answer.trim();}else if(!Number.isInteger(answer)||answer<0||answer>=s.options.length)return json(res,400,{error:'請選擇有效選項'});r.answers[r.index]??={};r.answers[r.index][t]=answer;r.updated=Date.now();return json(res,200,{ok:true});}
+ if(p==='/api/export'&&req.method==='GET'){if(!host)return json(res,403,{error:'只有教師可以匯出'});return json(res,200,{rows:Object.entries(r.answers).flatMap(([i,a])=>Object.entries(a).map(([id,answer])=>({page:Number(i)+1,title:r.deck[i].title,name:r.people.get(id),answer:typeof answer==='number'?r.deck[i].options[answer]:answer,correct:r.deck[i].type==='quiz'?answer===r.deck[i].correct:r.deck[i].type==='fill'?answer===r.deck[i].solution:null})))});}
+ return json(res,404,{error:'找不到此操作'});
+ }catch(e){json(res,400,{error:e.message||'操作失敗'});}});
+ server.on('close',()=>clearInterval(prune));return server;
+}
+if(process.argv[1]===fileURLToPath(import.meta.url)){const port=Number(process.env.PORT)||4178;createApp().listen(port,'0.0.0.0',()=>console.log('墨韻課堂 http://localhost:'+port));}
