@@ -10,3 +10,11 @@
 .roomaside select,.roomaside input,.slide textarea{max-width:100%;width:100%;box-sizing:border-box}.roomaside label{display:block;margin-top:12px}.roomaside button{margin:4px 0}.slide details{margin:12px 0}.slide details summary{cursor:pointer;font-weight:600}.slide details p{white-space:pre-wrap}dialog{max-width:min(680px,90vw);max-height:85vh;overflow:auto}dialog input{max-width:100%}.roomaside{overflow-wrap:anywhere}
 
 .thumb-grid{display:grid;gap:8px}.thumb-grid img{width:100%;max-height:120px;object-fit:contain}
+
+/* 文字雲：保留可讀取的文字與人數，窄螢幕自動換行。 */
+.wordcloud-panel{margin-top:24px;padding:24px 16px;border:1px solid #c4d1bf;border-radius:48% 12% 42% 10% / 16% 12% 16% 10%;background:radial-gradient(ellipse at center,#e4eadc 0%,#f7f3e9 72%)}
+.wordcloud-terms{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:16px 24px;list-style:none;padding:20px 0;margin:0;min-height:180px}
+.wordcloud-word{display:flex;align-items:baseline;gap:6px;max-width:100%;font-weight:700;line-height:1.35;text-align:center}
+.wordcloud-word span{overflow-wrap:anywhere;min-width:0}.wordcloud-word small{font-size:12px;white-space:nowrap;font-weight:400}
+.wordcloud-word.tone-0{color:#254e43}.wordcloud-word.tone-1{color:#935039}.wordcloud-word.tone-2{color:#375d73}.wordcloud-word.tone-3{color:#6b5933}
+@media(max-width:600px){.wordcloud-panel{padding:18px 10px}.wordcloud-terms{gap:12px}}

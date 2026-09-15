@@ -37,3 +37,39 @@ test('雲端 API：並行加入不遺失、答案保護、圖片授權、手寫�
  const resumed=await call('/api/rooms',undefined,cookie);assert.equal(resumed.data.rooms[0].code,code);
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+
+test('文字雲：詞語合併、更新取代、公布權限、截止、匯出與持久保存',async()=>{
+ const dir=await mkdtemp(path.join(os.tmpdir(),'moyun-words-')),url='file:'+path.join(dir,'db.sqlite');
+ const factory=()=>createClient({url}),db=factory();await initialize(db);db.close();
+ const env={TURSO_URL:'https://test',TURSO_TOKEN:'test',TEACHER_PASSWORD:'wordcloud-test-secret',PUBLIC_ORIGIN:'https://classroom.test'};
+ const call=async(p,b,token='',cookie='')=>{const r=await handle(new Request(env.PUBLIC_ORIGIN+p,{method:b===undefined?'GET':'POST',headers:{Cookie:cookie,Origin:env.PUBLIC_ORIGIN,'cf-connecting-ip':'words-test','Content-Type':'application/json',Authorization:'Bearer '+token},...(b===undefined?{}:{body:JSON.stringify(b)})}),env,factory);return {status:r.status,cookie:r.headers.get('set-cookie')?.split(';')[0],data:await r.json()};};
+ try{
+ const login=await call('/api/login',{password:env.TEACHER_PASSWORD});
+ const made=await call('/api/create',{deck:[{type:'wordcloud',title:'你看見什麼？'}]},'',login.cookie);assert.equal(made.status,200);
+ const {code,token:host}=made.data;
+ const students=await Promise.all(['甲','乙','丙'].map(name=>call('/api/join',{code,name})));
+ const tokens=students.map(s=>s.data.token);
+ const answer=(i,text)=>call('/api/answer',{code,index:0,answer:text},tokens[i]);
+ const state=t=>call('/api/state?code='+code,undefined,t);
+ assert.deepEqual((await state(host)).data.wordcloud,[]);
+ for(const bad of ['', ' \t ', '字'.repeat(31), '甲\n乙', '甲\u200b', 12])assert.equal((await answer(0,bad)).status,400);
+ await answer(0,' 山水 ');await answer(1,'山水');await answer(2,'清幽');
+ assert.deepEqual((await state(host)).data.wordcloud,[{text:'山水',count:2},{text:'清幽',count:1}]);
+ assert.equal((await state(tokens[0])).data.wordcloud,undefined);
+ assert.equal((await state(tokens[0])).data.answers,undefined);
+ await answer(0,'清幽');
+ assert.deepEqual((await state(host)).data.wordcloud,[{text:'清幽',count:2},{text:'山水',count:1}]);
+ assert.equal((await call('/api/control',{code,reveal:true},tokens[0])).status,403);
+ await call('/api/control',{code,reveal:true},host);
+ const shown=(await state(tokens[0])).data.wordcloud;
+ assert.equal(shown[0].count,2);assert.deepEqual(Object.keys(shown[0]).sort(),['count','text']);
+ assert.equal((await answer(0,'晚霞')).status,409);
+ await call('/api/control',{code,reveal:false},host);
+ await answer(0,'ＡＩ');await answer(1,'ai');
+ assert.equal((await state(host)).data.wordcloud.find(w=>w.text==='AI').count,2);
+ const report=await call('/api/export?code='+code,undefined,host);assert.equal(report.data.rows.length,3);assert.equal(report.data.rows[0].answer,'AI');assert.equal(report.data.rows[0].attempts,3);
+ await call('/api/control',{code,end:true},host);
+ assert.equal((await answer(0,'結束')).status,409);
+ assert.equal((await state(host)).data.wordcloud[0].count,2);
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
