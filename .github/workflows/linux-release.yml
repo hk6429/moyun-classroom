@@ -23,9 +23,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: 安裝鎖定套件與準備 PDF 引擎
+        run: npm ci && npm run build:web
       - name: 建置隔離轉檔映像
         run: docker build -f deploy/Dockerfile.converter -t moyun-converter:1 .
       - name: 驗證隔離邊界
         run: node --test deploy/isolation.test.mjs
       - name: 驗證課堂與文件匯入及雙站代理
-        run: node --test tests.mjs uploads.test.mjs security.test.mjs bundle.test.mjs hosting.test.mjs
+        run: node --test tests.mjs uploads.test.mjs security.test.mjs bundle.test.mjs hosting.test.mjs cloud/cloud.test.mjs

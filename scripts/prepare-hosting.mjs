@@ -11,7 +11,7 @@ export async function prepareHosting(backend,outRoot=path.join(root,'dist')){
  await mkdir(cf,{recursive:true});await mkdir(nf,{recursive:true});
  await cp(path.join(root,'public'),path.join(cf,'public'),{recursive:true});
  await cp(path.join(root,'public'),path.join(nf,'public'),{recursive:true});
- const headers="/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: same-origin\n  X-Frame-Options: DENY\n  Content-Security-Policy: default-src 'self'; script-src 'self' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; frame-src https://www.youtube-nocookie.com; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'\n";
+ const headers="/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: same-origin\n  X-Frame-Options: DENY\n  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; frame-src https://www.youtube-nocookie.com; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'\n";
  for(const dir of [cf,nf])await writeFile(path.join(dir,'public','_headers'),headers);
  await writeFile(path.join(nf,'public','_redirects'),'/api/* '+origin+'/api/:splat 200!\n/assets/* '+origin+'/assets/:splat 200!\n');
  await writeFile(path.join(nf,'netlify.toml'),'[build]\n  publish = "public"\n');

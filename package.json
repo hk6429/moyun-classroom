@@ -8,9 +8,15 @@
     "test": "node --test tests.mjs uploads.test.mjs security.test.mjs bundle.test.mjs",
     "test:core": "node --test tests.mjs security.test.mjs bundle.test.mjs",
     "test:load": "node load-check.mjs",
-    "test:hosting": "node --test hosting.test.mjs security.test.mjs"
+    "test:hosting": "node --test hosting.test.mjs security.test.mjs",
+    "build:web": "node scripts/build-web.mjs",
+    "test:cloud": "node --test cloud/cloud.test.mjs"
   },
   "engines": {
     "node": ">=22"
+  },
+  "dependencies": {
+    "@libsql/client": "0.18.0",
+    "pdfjs-dist": "6.3.289"
   }
 }

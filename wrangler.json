@@ -1,0 +1,21 @@
+{
+  "name": "moyun-classroom",
+  "main": "cloud/worker.mjs",
+  "account_id": "50c5a4941192c4307a1f5a8c415153f5",
+  "compatibility_date": "2026-09-15",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": true,
+  "assets": {
+    "directory": "public",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*",
+      "/assets/*"
+    ]
+  },
+  "vars": {
+    "ALLOWED_ORIGINS": "https://moyun-classroom.netlify.app"
+  }
+}

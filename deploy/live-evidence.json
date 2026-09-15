@@ -1,0 +1,19 @@
+{
+  "at": "2026-09-15T15:30:46.254Z",
+  "cloudflare": "https://moyun-classroom.hk6429.workers.dev",
+  "netlify": "https://moyun-classroom.netlify.app",
+  "code": "472574",
+  "checks": [
+    "雙站教師登入",
+    "Netlify 圖片上傳與 Cloudflare 讀回",
+    "5 人並行跨站加入",
+    "文字作答同步",
+    "手寫 PNG 與筆畫讀回",
+    "學生不能控制課堂",
+    "未授權圖片拒絕",
+    "學生可讀課堂圖片",
+    "完整報告含未作答學生",
+    "重新請求可恢復課堂"
+  ],
+  "passed": true
+}

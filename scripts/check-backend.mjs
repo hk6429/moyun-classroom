@@ -6,7 +6,7 @@ export async function checkBackend(origin){
  if(!response.ok)throw Error('後端健康檢查失敗：HTTP '+response.status);
  const health=await response.json();
  if(health.ok!==true||health.persistent!==true)throw Error('後端尚未確認持久儲存');
- if(health.converter?.mode!=='isolated'||health.converter?.ready!==true)throw Error('後端隔離轉檔引擎尚未就緒');
+ if(!['isolated','browser-pdf'].includes(health.converter?.mode)||health.converter?.ready!==true)throw Error('教材匯入模式尚未就緒');
  if(health.publicOrigin!==url.origin)throw Error('後端正式網址設定不符');
  return {backend:url.origin,persistent:true,isolatedConverter:true};
 }

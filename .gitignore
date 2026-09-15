@@ -9,3 +9,5 @@ data/
 dist/
 .netlify/
 .wrangler/
+node_modules/
+public/vendor/
