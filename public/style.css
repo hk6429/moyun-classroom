@@ -18,3 +18,8 @@
 .wordcloud-word span{overflow-wrap:anywhere;min-width:0}.wordcloud-word small{font-size:12px;white-space:nowrap;font-weight:400}
 .wordcloud-word.tone-0{color:#254e43}.wordcloud-word.tone-1{color:#935039}.wordcloud-word.tone-2{color:#375d73}.wordcloud-word.tone-3{color:#6b5933}
 @media(max-width:600px){.wordcloud-panel{padding:18px 10px}.wordcloud-terms{gap:12px}}
+/* 限時測驗與班級排名 */
+.race-config{padding:20px;background:#eef0e4;border-radius:12px;margin-bottom:24px}.race-config input{max-width:160px;margin:8px 12px 8px 0}
+.race-timer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:24px 0;padding:18px;border-radius:16px;background:#e6ecdf;color:#254e43;font-variant-numeric:tabular-nums}.race-timer strong{font-size:36px}.race-timer span{font-size:16px}
+.race-controls{display:grid;gap:12px;margin:20px 0}.race-ranking{padding:24px;background:#faf8f0;border:1px solid #d7dece;border-radius:18px;margin:24px 0}.race-table-wrap{overflow-x:auto}.race-table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}.race-table th,.race-table td{text-align:left;padding:14px 10px;border-bottom:1px solid #d7dece}.race-table td:nth-child(2){overflow-wrap:anywhere}.race-table tr.race-me{background:#e5ecdb}.race-table strong{color:#9c4933}.race-slide .option:disabled{opacity:.85}
+@media(max-width:600px){.race-ranking{padding:16px 8px}.race-table th,.race-table td{padding:12px 5px;font-size:14px}.race-timer strong{font-size:28px}}

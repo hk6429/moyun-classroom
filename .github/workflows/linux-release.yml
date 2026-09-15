@@ -30,4 +30,4 @@ jobs:
       - name: 驗證隔離邊界
         run: node --test deploy/isolation.test.mjs
       - name: 驗證課堂與文件匯入及雙站代理
-        run: node --test tests.mjs uploads.test.mjs security.test.mjs bundle.test.mjs hosting.test.mjs cloud/cloud.test.mjs
+        run: node --test tests.mjs uploads.test.mjs security.test.mjs bundle.test.mjs hosting.test.mjs cloud/cloud.test.mjs race.test.mjs

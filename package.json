@@ -6,11 +6,12 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test tests.mjs uploads.test.mjs security.test.mjs bundle.test.mjs",
-    "test:core": "node --test tests.mjs security.test.mjs bundle.test.mjs",
+    "test:core": "node --test tests.mjs security.test.mjs bundle.test.mjs race.test.mjs",
     "test:load": "node load-check.mjs",
     "test:hosting": "node --test hosting.test.mjs security.test.mjs",
     "build:web": "node scripts/build-web.mjs",
-    "test:cloud": "node --test cloud/cloud.test.mjs"
+    "test:cloud": "node --test cloud/cloud.test.mjs",
+    "test:race": "node --test race.test.mjs"
   },
   "engines": {
     "node": ">=22"

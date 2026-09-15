@@ -14,6 +14,7 @@ function access(env,data){
 }
 const error=(message,status=503)=>Response.json({error:message},{status,headers:{'Cache-Control':'no-store'}});
 export async function handle(request,env,makeDatabase=database){
+ const receivedAt=Date.now();
  if(!env.TURSO_URL||!env.TURSO_TOKEN||!env.TEACHER_PASSWORD)return error('課堂服務尚未完成設定');
  const url=new URL(request.url),db=makeDatabase(env);env={...env,PUBLIC_ORIGIN:env.PUBLIC_ORIGIN||url.origin};
  let body;
@@ -55,7 +56,7 @@ export async function handle(request,env,makeDatabase=database){
  async storageList(dir){return (await db.execute({sql:'SELECT id,name,bytes FROM assets WHERE trashed=?',args:[dir.endsWith('trash')?1:0]})).rows;},
  async trashAsset(dir,id,restore){if(!/^[0-9a-f-]{36}$/.test(id||''))throw Error('素材編號無效');changes.push({sql:'UPDATE assets SET trashed=? WHERE id=?',args:[restore?0:1,id]});next??=snapshot.data;}
  };
- try{createEngine({},deps);await handler(req,res);}finally{close?.();}
+ try{createEngine({receivedAt},deps);await handler(req,res);}finally{close?.();}
  if(!ended)return error('課堂回應未完成');
  if(next&&status<400&&!await save(db,snapshot.revision,next,changes)){await new Promise(r=>setTimeout(r,20+Math.random()*100*(attempt+1)));continue;}
  return new Response(result,{status,headers});
