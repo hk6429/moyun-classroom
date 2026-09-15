@@ -1,0 +1,46 @@
+{
+  "at": "2026-09-15T15:46:03.309Z",
+  "commit": "02ae325",
+  "workerVersion": "a7e4de44-aab1-409a-ab5b-b92e59af36dd",
+  "ci": "https://github.com/hk6429/moyun-classroom/actions/runs/34990277452",
+  "checks": [
+    {
+      "base": "https://moyun-classroom.hk6429.workers.dev",
+      "file": "app.js",
+      "match": true
+    },
+    {
+      "base": "https://moyun-classroom.hk6429.workers.dev",
+      "file": "importer.js",
+      "match": true
+    },
+    {
+      "base": "https://moyun-classroom.hk6429.workers.dev",
+      "file": "enhancements.js",
+      "match": true
+    },
+    {
+      "base": "https://moyun-classroom.hk6429.workers.dev",
+      "redeployRetainedClassrooms": true
+    },
+    {
+      "base": "https://moyun-classroom.netlify.app",
+      "file": "app.js",
+      "match": true
+    },
+    {
+      "base": "https://moyun-classroom.netlify.app",
+      "file": "importer.js",
+      "match": true
+    },
+    {
+      "base": "https://moyun-classroom.netlify.app",
+      "file": "enhancements.js",
+      "match": true
+    },
+    {
+      "base": "https://moyun-classroom.netlify.app",
+      "redeployRetainedClassrooms": true
+    }
+  ]
+}
