@@ -1,0 +1,31 @@
+name: Linux 隔離轉檔驗證
+on:
+  push:
+    branches: [expert-fixes-20260915]
+    paths:
+      - "**.mjs"
+      - "deploy/**"
+      - ".github/workflows/linux-release.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CREATE_RATE_LIMIT: "10000"
+      JOIN_RATE_LIMIT: "10000"
+      DEVELOPMENT_LOCAL_CONVERTER: "0"
+      DATA_DIR: /tmp/moyun-ci-assets
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: 建置隔離轉檔映像
+        run: docker build -f deploy/Dockerfile.converter -t moyun-converter:1 .
+      - name: 驗證隔離邊界
+        run: node --test deploy/isolation.test.mjs
+      - name: 驗證課堂與文件匯入及雙站代理
+        run: node --test tests.mjs uploads.test.mjs security.test.mjs bundle.test.mjs hosting.test.mjs
