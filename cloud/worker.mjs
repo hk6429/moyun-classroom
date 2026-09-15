@@ -14,13 +14,12 @@ function access(env,data){
 }
 const error=(message,status=503)=>Response.json({error:message},{status,headers:{'Cache-Control':'no-store'}});
 export async function handle(request,env,makeDatabase=database){
- const receivedAt=Date.now();
  if(!env.TURSO_URL||!env.TURSO_TOKEN||!env.TEACHER_PASSWORD)return error('課堂服務尚未完成設定');
  const url=new URL(request.url),db=makeDatabase(env);env={...env,PUBLIC_ORIGIN:env.PUBLIC_ORIGIN||url.origin};
- let body;
+ let body,receivedAt;
  try{
  if(Number(request.headers.get('content-length'))>8*1024*1024)return error('單次資料超過 8 MB，請降低圖片解析度後重試',413);
- body=Buffer.from(await request.arrayBuffer());if(body.length>8*1024*1024)return error('單次資料超過 8 MB，請降低圖片解析度後重試',413);
+ body=Buffer.from(await request.arrayBuffer());receivedAt=Date.now();if(body.length>8*1024*1024)return error('單次資料超過 8 MB，請降低圖片解析度後重試',413);
  if(request.method==='POST'){
  const allowed=[env.PUBLIC_ORIGIN,...(env.ALLOWED_ORIGINS||'').split(',')];const origin=request.headers.get('origin');if(origin&&!allowed.includes(origin))return error('請從本站送出請求',403);
  const max=url.pathname==='/api/login'?5:url.pathname==='/api/upload'?600:url.pathname==='/api/join'?300:1000;

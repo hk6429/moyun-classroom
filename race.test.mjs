@@ -59,3 +59,18 @@ test('十題競速 API：等候、限時、不可重答、伺服器計分、續�
  assert.equal((await control({end:true})).status,200);assert.equal((await answer(students[0],9)).status,409);
  }finally{await new Promise(r=>server.close(r));await rm(dir,{recursive:true,force:true});}
 });
+
+test('延遲傳送答案本文不能取得較早的計分時間',async()=>{
+ const {request}=await import('node:http');const dir=await mkdtemp('/tmp/moyun-race-body-');let now=Date.now();
+ const server=createApp({dataDir:dir,now:()=>now});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
+ const call=async(p,b,cookie='',token='')=>{const r=await fetch(base+'/api/'+p,{method:'POST',headers:{Cookie:cookie,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(b)});return {data:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0]};};
+ try{
+ const login=await call('login',{password:(await readFile(dir+'/teacher-password','utf8')).trim()});
+ const {data:{code,token:host}}=await call('create',{deck:Array.from({length:10},()=>({type:'racequiz',title:'計時驗證',options:['甲','乙'],correct:0,seconds:20}))},login.cookie);
+ const {data:{token}}=await call('join',{code,name:'慢傳驗證'});await call('control',{code,raceStart:true,indexExpected:0},login.cookie,host);now+=3000;
+ const seen=new Promise(r=>server.once('request',r));let req;
+ const result=new Promise((resolve,reject)=>{req=request(base+'/api/answer',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'}},res=>{let raw='';res.on('data',b=>raw+=b);res.on('end',()=>resolve({status:res.statusCode,data:JSON.parse(raw)}));});req.on('error',reject);});
+ req.write(JSON.stringify({code,index:0}).slice(0,-1)+',');await seen;now+=9000;req.end('"answer":0}');assert.equal((await result).status,200);
+ const r=await fetch(base+'/api/export?code='+code,{headers:{Authorization:'Bearer '+host}});const data=await r.json();assert.equal(data.rows[0].points,500);assert.equal(data.rows[0].elapsedMs,9000);
+ }finally{await new Promise(r=>server.close(r));await rm(dir,{recursive:true,force:true});}
+});
