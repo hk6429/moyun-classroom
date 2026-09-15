@@ -1,3 +1,4 @@
+import {checkBackend} from './check-backend.mjs';
 import {mkdir,cp,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
@@ -22,5 +23,5 @@ export async function prepareHosting(backend,outRoot=path.join(root,'dist')){
 }
 if(process.argv[1]===fileURLToPath(import.meta.url)){
  if(!process.argv[2]){console.error('用法：node scripts/prepare-hosting.mjs https://已就緒的後端網域');process.exitCode=1;}
- else console.log(JSON.stringify(await prepareHosting(process.argv[2]),null,2));
+ else {await checkBackend(process.argv[2]);console.log(JSON.stringify(await prepareHosting(process.argv[2]),null,2));}
 }
