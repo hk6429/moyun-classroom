@@ -14,6 +14,13 @@ export async function initialize(db){
  "CREATE TABLE IF NOT EXISTS asset_owners (id TEXT PRIMARY KEY, owner TEXT)",
  "CREATE TABLE IF NOT EXISTS room_presence (token TEXT PRIMARY KEY, code TEXT NOT NULL, seen INTEGER NOT NULL)",
  "CREATE INDEX IF NOT EXISTS room_presence_code ON room_presence(code, seen)",
+ // 多教師：Google 帳號名單、雲端教材（可分享為校內範本）、課後學習紀錄（只存班級座號，不存姓名）
+ "CREATE TABLE IF NOT EXISTS teachers (email TEXT PRIMARY KEY, added INTEGER NOT NULL)",
+ "CREATE TABLE IF NOT EXISTS decks (id TEXT PRIMARY KEY, owner TEXT NOT NULL, owner_name TEXT, data TEXT NOT NULL, shared INTEGER NOT NULL DEFAULT 0, updated INTEGER NOT NULL)",
+ "CREATE INDEX IF NOT EXISTS decks_owner ON decks(owner)",
+ "CREATE TABLE IF NOT EXISTS lessons (code TEXT PRIMARY KEY, owner TEXT, title TEXT, ended INTEGER NOT NULL, slides TEXT NOT NULL)",
+ "CREATE INDEX IF NOT EXISTS lessons_owner ON lessons(owner, ended)",
+ "CREATE TABLE IF NOT EXISTS records (code TEXT NOT NULL, class TEXT NOT NULL, seat INTEGER NOT NULL, results TEXT NOT NULL, PRIMARY KEY(code,class,seat))",
  // 舊版整包資料搬入新表；可重複執行，已搬過的不覆寫
  "INSERT OR IGNORE INTO rooms(code,data,updated) SELECT json_extract(r.value,'$[0]'),json_extract(r.value,'$[1]'),coalesce(json_extract(r.value,'$[1].updated'),0) FROM app_state a, json_each(a.data,'$.rooms') r WHERE a.id=1",
  "INSERT OR IGNORE INTO sessions(id,data,expires) SELECT json_extract(s.value,'$[0]'),json_extract(s.value,'$[1]'),json_extract(s.value,'$[1].expires') FROM app_state a, json_each(a.data,'$.sessions') s WHERE a.id=1 AND json_extract(s.value,'$[1].expires')>CAST(strftime('%s','now') AS INTEGER)*1000",

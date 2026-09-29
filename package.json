@@ -10,7 +10,7 @@
     "test:load": "node load-check.mjs",
     "test:hosting": "node --test hosting.test.mjs security.test.mjs",
     "build:web": "node scripts/build-web.mjs",
-    "test:cloud": "node --test cloud/cloud.test.mjs cloud/quota.test.mjs cloud/teaching.test.mjs cloud/practice.test.mjs",
+    "test:cloud": "node --test cloud/cloud.test.mjs cloud/quota.test.mjs cloud/teaching.test.mjs cloud/practice.test.mjs cloud/accounts.test.mjs",
     "test:race": "node --test race.test.mjs"
   },
   "engines": {

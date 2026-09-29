@@ -1,5 +1,6 @@
 import {AUDIO_MIME,decodeAudio} from '../audio.mjs';
 import {createEngine} from '../engine.mjs';
+import {accounts,isAdmin,saveLesson} from './accounts.mjs';
 import {database,loadRooms,roomRevision,loadSession,commit,touchPresence,onlineIn,sweep,rate,putAsset,getAsset} from './database.mjs';
 import {Buffer} from 'node:buffer';
 import {randomBytes,randomInt,timingSafeEqual,createHash} from 'node:crypto';
@@ -31,7 +32,7 @@ export async function handle(request,env,makeDatabase=database){
  body=Buffer.from(await request.arrayBuffer());receivedAt=Date.now();if(body.length>8*1024*1024)return error('單次資料超過 8 MB，請降低圖片解析度後重試',413);
  if(request.method==='POST'){
  const allowed=[env.PUBLIC_ORIGIN,...(env.ALLOWED_ORIGINS||'').split(',')];const origin=request.headers.get('origin');if(origin&&!allowed.includes(origin))return error('請從本站送出請求',403);
- const max=url.pathname==='/api/login'?5:url.pathname==='/api/upload'?600:url.pathname==='/api/join'?300:1000;
+ const max=url.pathname==='/api/login'?5:url.pathname==='/api/google-login'?20:url.pathname==='/api/upload'?600:url.pathname==='/api/join'?300:1000;
  const ip=request.headers.get('cf-connecting-ip')||'unknown';
  if(!await rate(db,ip+':'+url.pathname,max))return error('請求頻繁，請稍後再試',429);
  if(Math.random()<0.01)await sweep(db);
@@ -41,8 +42,11 @@ export async function handle(request,env,makeDatabase=database){
  const code=String(url.searchParams.get('code')||parsed?.code||'');
  const loadedSession=p==='/api/state'?null:await loadSession(db,sid);
  const noStore={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'};
- // 需要跨課堂的教師操作直接用 SQL，不把所有課堂載入 Worker
- if(p==='/api/rooms'&&request.method==='GET'){if(!loadedSession?.teacher)return error('請先登入教師帳號',401);const rows=(await db.execute("SELECT code,json_extract(data,'$.host') host,json_extract(data,'$.deck[0].title') title,json_extract(data,'$.ended') ended,json_extract(data,'$.updated') updated FROM rooms WHERE coalesce(json_extract(data,'$.archived'),0)=0 ORDER BY rowid")).rows;return new Response(JSON.stringify({rooms:rows.map(r=>({code:String(r.code),token:r.host,title:r.title,ended:!!r.ended,updated:Number(r.updated)||null}))}),{headers:noStore});}
+ const account=await accounts(p,request,env,db,loadedSession,sid,parsed);if(account)return account;
+ if(p.startsWith('/api/storage')&&loadedSession?.teacher&&!isAdmin(loadedSession))return error('素材管理僅限管理者',403);
+ // 需要跨課堂的教師操作直接用 SQL，不把所有課堂載入 Worker；Google 帳號只看得到自己開的課
+ const ownerSql=loadedSession?.email?["json_extract(data,'$.owner')=?",[loadedSession.email]]:["json_extract(data,'$.owner') IS NULL",[]];
+ if(p==='/api/rooms'&&request.method==='GET'){if(!loadedSession?.teacher)return error('請先登入教師帳號',401);const rows=(await db.execute({sql:"SELECT code,json_extract(data,'$.host') host,coalesce(json_extract(data,'$.name'),json_extract(data,'$.deck[0].title')) title,json_extract(data,'$.ended') ended,json_extract(data,'$.updated') updated FROM rooms WHERE coalesce(json_extract(data,'$.archived'),0)=0 AND "+ownerSql[0]+" ORDER BY rowid",args:ownerSql[1]})).rows;return new Response(JSON.stringify({rooms:rows.map(r=>({code:String(r.code),token:r.host,title:r.title,ended:!!r.ended,updated:Number(r.updated)||null}))}),{headers:noStore});}
  if(p==='/api/storage-trash'&&request.method==='POST'&&loadedSession?.teacher&&!parsed.restore&&/^[0-9a-f-]{36}$/.test(parsed.id||'')){const used=(await db.execute({sql:'SELECT 1 FROM rooms WHERE instr(data,?)>0 LIMIT 1',args:['/'+parsed.id+'/']})).rows.length;if(used)return new Response(JSON.stringify({error:'此圖片仍被課堂使用，請保留'}),{status:409,headers:noStore});}
  const scope=p.startsWith('/assets/')?(loadedSession&&!loadedSession.teacher?(loadedSession.codes||[]).slice(-30):[]):['/api/logout','/api/storage','/api/storage-trash','/api/create','/api/login','/api/session'].includes(p)||!/^\d{6}$/.test(code)?[]:[code];
  // 學生長輪詢：課堂沒變就在伺服器端等，最多約 20 秒才回應，取代每 2.5 秒一次的請求
@@ -98,7 +102,8 @@ export async function handle(request,env,makeDatabase=database){
  const sessions=[...auth.dirty].filter(id=>auth.sessions.has(id)).map(id=>{const s=auth.sessions.get(id);if(!s.teacher&&touched.length)s.codes=[...new Set([...(s.codes||[]),...touched])].slice(-30);return [id,s];});
  const owners=Object.entries(next.owners||{});
  if(!await commit(db,{updates,inserts,sessions,removed:[...auth.removed],owners,changes})){await sleep(20+Math.random()*100*(attempt+1));continue;}
- if(p==='/api/logout'&&loadedSession?.teacher)await db.execute("UPDATE rooms SET data=json_set(data,'$.host',lower(hex(randomblob(24)))),revision=revision+1");
+ if(p==='/api/logout'&&loadedSession?.teacher)await db.execute({sql:"UPDATE rooms SET data=json_set(data,'$.host',lower(hex(randomblob(24)))),revision=revision+1 WHERE "+ownerSql[0],args:ownerSql[1]});
+ if(p==='/api/control'&&parsed.end===true&&status<400){const r=(next.rooms||[]).find(([c])=>c===code)?.[1];if(r?.ended)await saveLesson(db,code,r);}
  }
  const revision=loaded.get(code)?.revision;
  return {status,headers,result,revision};

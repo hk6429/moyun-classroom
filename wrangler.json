@@ -16,6 +16,7 @@
     ]
   },
   "vars": {
-    "ALLOWED_ORIGINS": "https://moyun-classroom.netlify.app"
+    "ALLOWED_ORIGINS": "https://moyun-classroom.netlify.app",
+    "TEACHER_ADMINS": "hk6429@gmail.com"
   }
 }

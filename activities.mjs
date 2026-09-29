@@ -64,3 +64,6 @@ export function validStamps(n,a){if(!a||typeof a!=='object'||!a.stamps||typeof a
 export function readingHeat(n,answers){const heat=Array.from({length:n},()=>({key:0,doubt:0,good:0}));for(const a of answers)for(const [i,v]of Object.entries(a?.stamps||{}))if(heat[i]&&STAMPS[v])heat[i][v]++;return heat;}
 // 自主進度的錯題複習用：只接受可評分題型的合法作答
 export function validGraded(slide,perm,a){if(['quiz','racequiz'].includes(slide.type))return Number.isInteger(a)&&a>=0&&a<slide.options.length;if(slide.type==='fill')return typeof a==='string'&&!!a.trim()&&a.length<=1000;if(slide.type==='arrange')return validArrange(slide,perm,a);return false;}
+// 記憶牌卡：每行「正面＝背面」；學生翻卡後自評記得（1）或不熟（0）
+export function parseCards(lines){const rows=(Array.isArray(lines)?lines:[]).map(x=>String(x).trim()).filter(Boolean),cards=rows.map(l=>l.split(/[=＝｜|]/).map(x=>x.trim()));if(cards.length<2||cards.length>40||cards.some(c=>c.length!==2||!c[0]||!c[1]))throw Error('記憶牌卡每行寫「正面＝背面」，需 2 至 40 張');return cards.map(([front,back])=>({front,back}));}
+export function validCards(n,a){if(!a||typeof a!=='object'||!a.cards||typeof a.cards!=='object')return false;const e=Object.entries(a.cards);return e.length>0&&e.every(([i,v])=>/^\d+$/.test(i)&&Number(i)<n&&(v===0||v===1));}

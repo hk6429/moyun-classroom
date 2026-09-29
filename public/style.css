@@ -39,3 +39,12 @@
 .stamp,.stamp-inline{display:inline-grid;place-items:center;width:1.8em;height:1.8em;margin-left:.5em;border:2px solid var(--red);border-radius:6px;color:var(--red);font-weight:700;font-size:.8em;transform:rotate(-8deg);vertical-align:middle}.stamp-inline{margin:0 .4em 0 0}.heat{display:block;font-family:inherit;font-size:14px;color:var(--red);margin-top:2px}
 .audio-answer{display:grid;gap:12px;margin:24px 0}.audio-answer audio,.response audio{width:100%;max-width:420px}
 .checkpoints{margin:20px 0;display:grid;gap:12px}.checkpoint-row{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+/* 多教師：帳號、範本庫、儀表板、記憶牌卡 */
+.account-pill{display:inline-flex;align-items:center;min-height:40px;padding:6px 14px;border-radius:999px;background:#e6ecdf;color:var(--jade);font-size:14px;overflow-wrap:anywhere}
+.google-login{display:grid;gap:10px;margin:8px 0 16px;padding-bottom:12px;border-bottom:1px solid var(--line)}#google-button{min-height:44px}
+.template-list{display:grid;gap:8px;margin:12px 0}.template-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.template-row small{display:block;color:var(--muted)}.template-row span{overflow-wrap:anywhere}
+#add-teacher{display:grid;gap:8px;margin:12px 0}.share-toggle{display:flex;align-items:center;gap:8px;margin:-8px 0 20px;color:var(--muted)}
+#modal:has(.dash-table){width:min(960px,calc(100vw - 32px))}.dash-scroll{overflow-x:auto;margin:12px 0}.dash-table{border-collapse:collapse;font-variant-numeric:tabular-nums;min-width:100%}.dash-table th,.dash-table td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}.dash-table th small{display:block;font-weight:400;color:var(--muted)}.dash-table td.low{background:#f3d9d0;color:#8a3a26}.dash-table td.mid{background:#f4ead2}.dash-table td.high{background:#e0eadb}
+.missed{display:grid;gap:8px;padding-left:1.4em}.missed small{display:block;color:var(--muted)}
+.flashcards{display:grid;gap:12px;margin:20px 0;justify-items:center}.flashcard{width:min(100%,420px);min-height:200px;display:grid;place-items:center;gap:6px;padding:24px;border:1px solid var(--line);border-radius:18px;background:var(--surface);font-family:var(--serif);font-size:clamp(24px,5vw,36px);box-shadow:0 8px 24px rgba(37,78,67,.08)}.flashcard.flipped{background:#f4ead2}.flashcard small{font-family:inherit;font-size:14px;color:var(--muted)}.flashcards [aria-pressed=true]{background:var(--jade);color:#fff}
+.card-tally{margin:20px 0}
