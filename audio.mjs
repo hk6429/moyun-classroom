@@ -1,0 +1,4 @@
+// 學生錄音作答：依檔頭判斷格式，不信任瀏覽器宣告的 MIME
+export const AUDIO_MIME={webm:'audio/webm',ogg:'audio/ogg',m4a:'audio/mp4',mp3:'audio/mpeg'};
+export function audioFormat(b){if(b.length<12)return null;if(b[0]===0x1a&&b[1]===0x45&&b[2]===0xdf&&b[3]===0xa3)return 'webm';if(b.subarray(0,4).toString('latin1')==='OggS')return 'ogg';if(b.subarray(4,8).toString('latin1')==='ftyp')return 'm4a';if(b.subarray(0,3).toString('latin1')==='ID3'||b[0]===0xff&&(b[1]&0xe0)===0xe0)return 'mp3';return null;}
+export function decodeAudio(data){const m=typeof data==='string'&&/^data:audio\/[a-z0-9.+-]+(;[a-z0-9=.-]+)*;base64,/i.exec(data);if(!m||data.length>7*1024*1024)throw Error('錄音格式錯誤或超過 3 分鐘，請重新錄製');const bytes=Buffer.from(data.slice(m[0].length),'base64'),ext=audioFormat(bytes);if(!ext)throw Error('無法辨識的錄音格式');return {bytes,ext};}

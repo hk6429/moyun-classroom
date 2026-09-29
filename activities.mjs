@@ -52,3 +52,15 @@ export function insight(room,index,names){
  if(first){const before=Object.entries(first.answers).filter(([id])=>names.has(id)),rightBefore=before.filter(([,a])=>isCorrect(room,index,a)).length;peer={round:2,firstTotal:before.length,firstCorrect:rightBefore,secondTotal:rows.length,secondCorrect:rows.filter(r=>r.correct).length,fixed:rows.filter(r=>r.correct&&first.answers[r.id]!==undefined&&!isCorrect(room,index,first.answers[r.id])).map(r=>r.name)};}
  return {total:rows.length,correct:rows.filter(r=>r.correct).length,sureWrong:wrong.filter(r=>r.confidence===3).map(r=>r.name),guessRight:rows.filter(r=>r.correct&&r.confidence===1).map(r=>r.name),groups,peer};
 }
+// 影片中途提問：每行「分:秒 問題｜選項｜*正解｜選項」
+export function parseCheckpoints(lines){
+ const rows=(Array.isArray(lines)?lines:[]).map(x=>String(x).trim()).filter(Boolean);if(rows.length>10)throw Error('影片提問最多 10 題');
+ return rows.map(l=>{const m=/^(?:(\d+):)?(\d{1,2}):(\d{2})\s+(.+)$/.exec(l);if(!m)throw Error('影片提問每行開頭寫時間，例如「1:30 問題｜選項｜*正解」');const parts=m[4].split(/[｜|]/).map(x=>x.trim()).filter(Boolean),q=parts.shift(),options=parts.map(o=>o.replace(/^[*＊]/,'').trim()),correct=parts.findIndex(o=>/^[*＊]/.test(o));if(!q||options.length<2||options.length>6||correct<0||parts.filter(o=>/^[*＊]/.test(o)).length!==1)throw Error('影片提問需 2 至 6 個選項，並在正解前加 *');return {at:Number(m[1]||0)*3600+Number(m[2])*60+Number(m[3]),question:q.slice(0,200),options:options.map(o=>o.slice(0,120)),correct};}).sort((a,b)=>a.at-b.at);
+}
+// 朱批共讀：把文章切成句子，學生逐句蓋「要／疑／妙」
+export const STAMPS={key:'要',doubt:'疑',good:'妙'};
+export function sentences(text){return String(text||'').split(/\n+/).flatMap(p=>p.match(/[^。！？；!?]+[。！？；!?」』）)]*|[^。！？；!?]+$/g)||[]).map(x=>x.trim()).filter(Boolean).slice(0,120);}
+export function validStamps(n,a){if(!a||typeof a!=='object'||!a.stamps||typeof a.stamps!=='object')return false;const e=Object.entries(a.stamps);return e.length>0&&e.length<=40&&e.every(([i,v])=>/^\d+$/.test(i)&&Number(i)<n&&STAMPS[v]);}
+export function readingHeat(n,answers){const heat=Array.from({length:n},()=>({key:0,doubt:0,good:0}));for(const a of answers)for(const [i,v]of Object.entries(a?.stamps||{}))if(heat[i]&&STAMPS[v])heat[i][v]++;return heat;}
+// 自主進度的錯題複習用：只接受可評分題型的合法作答
+export function validGraded(slide,perm,a){if(['quiz','racequiz'].includes(slide.type))return Number.isInteger(a)&&a>=0&&a<slide.options.length;if(slide.type==='fill')return typeof a==='string'&&!!a.trim()&&a.length<=1000;if(slide.type==='arrange')return validArrange(slide,perm,a);return false;}
