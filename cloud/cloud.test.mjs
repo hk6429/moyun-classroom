@@ -67,7 +67,7 @@ test('文字雲：詞語合併、更新取代、公布權限、截止、匯出�
  await call('/api/control',{code,reveal:false},host);
  await answer(0,'ＡＩ');await answer(1,'ai');
  assert.equal((await state(host)).data.wordcloud.find(w=>w.text==='AI').count,2);
- const report=await call('/api/export?code='+code,undefined,host);assert.equal(report.data.rows.length,3);assert.equal(report.data.rows[0].answer,'AI');assert.equal(report.data.rows[0].attempts,3);
+ const report=await call('/api/export?code='+code,undefined,host);assert.equal(report.data.rows.length,3);const first=report.data.rows.find(r=>r.name==='甲');assert.equal(first.answer,'AI');assert.equal(first.attempts,3);
  await call('/api/control',{code,end:true},host);
  assert.equal((await answer(0,'結束')).status,409);
  assert.equal((await state(host)).data.wordcloud[0].count,2);
