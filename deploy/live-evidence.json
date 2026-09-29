@@ -1,8 +1,8 @@
 {
-  "at": "2026-09-15T15:30:46.254Z",
+  "at": "2026-09-29T17:23:59.535Z",
   "cloudflare": "https://moyun-classroom.hk6429.workers.dev",
   "netlify": "https://moyun-classroom.netlify.app",
-  "code": "472574",
+  "code": "628554",
   "checks": [
     "雙站教師登入",
     "Netlify 圖片上傳與 Cloudflare 讀回",
