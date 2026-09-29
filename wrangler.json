@@ -17,6 +17,7 @@
   },
   "vars": {
     "ALLOWED_ORIGINS": "https://moyun-classroom.netlify.app",
-    "TEACHER_ADMINS": "hk6429@gmail.com"
+    "TEACHER_ADMINS": "hk6429@gmail.com",
+    "GOOGLE_CLIENT_ID": "809967300679-6blm38j2oqvfpqpv93diu4ls2rsrdec5.apps.googleusercontent.com"
   }
 }
